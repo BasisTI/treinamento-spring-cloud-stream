@@ -1,6 +1,11 @@
 = Treinamento Spring Cloud Stream
+:toc:
+:toc-title: Índice
+:toclevels: 4
 
-== Prerequisitos
+== Dados técnicos
+
+=== Prerequisitos
 
 * Java SDK 21
 * Maven 3.9
@@ -13,7 +18,7 @@ Para inciar os serviços, na raiz do projeto executar:
 docker compose up -d
 ----
 
-== Geração dos jars
+=== Geração dos jars
 
 Para gerar os jars, executar na raiz do projeto:
 
@@ -21,4 +26,36 @@ Para gerar os jars, executar na raiz do projeto:
 ----
 mvn clean package
 ----
+
+== Treinamento
+
+=== Introdução
+
+==== Spring Cloud Stream
+
+O Spring Cloud Stream é um framework de alto nível de abstração projetado para construir microsserviços escaláveis e orientados a eventos. Seu principal objetivo é desacoplar a lógica de negócio da infraestrutura de mensageria subjacente. Ele permite que os desenvolvedores se concentrem na lógica de processamento de dados sem se preocupar com o código repetitivo(`boilerplate`) necessário para se conectar a _message brokers_ como RabbitMQ ou Apache Kafka.  O framework fornece uma configuração opinativa para conceitos de mensageria persistente, como semântica de publicação-assinatura, grupos de consumidores e particionamento, essenciais para sistemas distribuídos robustos.
+
+==== Spring Cloud Function
+
+O Spring Cloud Function representa o modelo de programação moderno e recomendado para o Spring Cloud Stream. A ideia central é que qualquer bean do Spring que implemente as interfaces funcionais padrão do Java `java.util.function.Supplier`, `java.util.function.Function`, ou `java.util.function.Consumer` — pode ser automaticamente tratado como uma fonte de mensagens, um processador ou um consumidor (sink), respectivamente.
+
+==== O Domínio de "Processo Administrativo"
+
+Para tornar os exemplos práticos e relacionáveis, todo o treinamento será baseado em um domínio de processos administrativos. O objeto central será um _POJO (Plain Old Java Object)_ chamado `Processo`. Este objeto representará a submissão de um processo administrativo e conterá campos como um `id` do tipo `UUID`, um `tipoProcesso` e `detalhes` do tipo `String`.
+
+=== Produzindo e consumindo mensagens
+* O Consumidor Funcional: Recebendo um `Processo` (Conversão Automática de JSON para POJO com Jackson - o mesmo do Spring Web)
+* Produtor Imperativo: Enviando com `StreamBridge`
+* Teste de ponta a ponta
+
+=== Padrões Avançados e Arquitetura
+* O Processador: Transformando um `Processo` em uma `Notificacao`
+* Escalando com Grupos de Consumidores
+
+=== Construindo para a Resiliência: Dead Letter Queues e Retentativas
+
+* O Problema da _Pílula de Veneno_ (ou batata quente)
+* Implementando Mecanismos de Re-tentativa Sofisticados
+
+=== Exercício
 
