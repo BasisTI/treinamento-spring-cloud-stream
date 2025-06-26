@@ -1,0 +1,24 @@
+= Treinamento Spring Cloud Stream
+
+== Prerequisitos
+
+* Java SDK 21
+* Maven 3.9
+* Docker e Docker Compose.
+
+Para inciar os serviços, na raiz do projeto executar:
+
+[source,shell]
+----
+docker compose up -d
+----
+
+== Geração dos jars
+
+Para gerar os jars, executar na raiz do projeto:
+
+[source,shell]
+----
+mvn clean package
+----
+
