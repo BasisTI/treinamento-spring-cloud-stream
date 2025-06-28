@@ -1,0 +1,70 @@
+[#consumer]
+= Parte 1 - Criação do Consumer
+:icons: font
+
+Criar o _Bean Spring_ `processoConsumer` implementando a interface funcional _Java_  `java.util.function.Consumer`:
+
+[source,java]
+----
+package br.com.basis.treinamento.processo_consumer;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+import java.util.function.Consumer;
+
+@Service
+public class ProcessoConsumer implements Consumer<Processo> {
+
+    private static final Logger log =
+            LoggerFactory.getLogger(ProcessoConsumer.class);
+
+
+    @Override
+    public void accept(Processo processo) {
+        log.info("Processo recebido: ID={}, tipo={}, detalhes={}",
+                processo.id(), processo.tipoProcesso(), processo.detalhes());
+    }
+}
+----
+
+[IMPORTANT]
+====
+No código Java não tem nada específico do _Broker_ utilizado, somente código de negócio. Usando o _Spring Cloud Stream_ com o modelo funcional, não há necessidade de anotações como `@RabbitListener` ou `@StreamListener`.
+
+A configuração do _Binder_ (_Broker_) é feita... no arquivo de configuração.
+====
+
+Aplicar a configuração para relacionar o _Bean Spring_ `processoConsumer` com a fila no
+_RabbitMQ_:
+
+[source,yaml]
+----
+spring:
+  application:
+    name: processo-consumer
+  cloud:
+    function:
+      definition: processoConsumer
+    stream:
+      bindings:
+        processoConsumer-in-0:
+          destination: processos
+          group: audit-service
+      rabbit:
+        bindings:
+          processoConsumer-in-0:
+            consumer:
+              declare-exchange: true
+              exchange-type: topic
+----
+
+Alguns pontos importantes sobre a configuração:
+
+* Na chave `spring.cloud.function` devem ser registrados os _Beans Spring_ que serão utilizados para ler ou produzir mensagens. Se tiver mais de um bean de tratamento de mensagens, separar eles com `;`.
+
+* Na chave `spring.cloud.stream`:
+** Configurar na chave `bindings` os canais para vincular os _Beans_ com as filas do _RabbitMQ_
+** Para cada canal em baixo de `bindings`, colocar o nome do canal usando o padrão `<nomeBean>-<sentido>-<sequencial>` on `<sentido>` deve ser in para _Consumers_ e `out` para _Producers_
+** A _Exchange_ RabbirtMQ é configurada na chave `destination` e na chave `group` o nome da fila (que terá como prefixo o nome da _Exchange_).

@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: processo-producer
+  cloud:
+    stream:
+      bindings:
+        processoProducer-out-0:
+          destination: processos
+      rabbit:
+        bindings:
+          processoProducer-out-0:
+            producer:
+              exchange-type: topic
+              declare-exchange: true
+server:
+  port: 8081

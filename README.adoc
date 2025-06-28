@@ -44,9 +44,9 @@ O Spring Cloud Function representa o modelo de programação moderno e recomenda
 Para tornar os exemplos práticos e relacionáveis, todo o treinamento será baseado em um domínio de processos administrativos. O objeto central será um _POJO (Plain Old Java Object)_ chamado `Processo`. Este objeto representará a submissão de um processo administrativo e conterá campos como um `id` do tipo `UUID`, um `tipoProcesso` e `detalhes` do tipo `String`.
 
 === Produzindo e consumindo mensagens
-* O Consumidor Funcional: Recebendo um `Processo` (Conversão Automática de JSON para POJO com Jackson - o mesmo do Spring Web)
+* O Consumidor Funcional: Recebendo um `Processo` (Conversão Automática de JSON para POJO com Jackson - o mesmo do Spring Web), ver <<docs/1.consumer.adoc#consumer,Criação do _Consumer_>>
 * Produtor Imperativo: Enviando com `StreamBridge`
-* Teste de ponta a ponta
+* Teste de ponta a ponta <<docs/2.producer.adoc#producer,Criação do _Producer_>>
 
 === Padrões Avançados e Arquitetura
 * O Processador: Transformando um `Processo` em uma `Notificacao`
@@ -59,3 +59,26 @@ Para tornar os exemplos práticos e relacionáveis, todo o treinamento será bas
 
 === Exercício
 
+Esta seção final testa a compreensão do leitor, solicitando a construção de um novo componente que combina vários dos conceitos aprendidos. O exercício é inspirado em requisitos do mundo real para validação e roteamento.35
+
+== Descrição do Exercício
+
+A tarefa é aprimorar o fluxo de processos administrativos com uma etapa de validação de documentos.
+
+. Modificar o Produtor: Atualize o record Processo e o endpoint _REST_ do processo-producer para aceitar opcionalmente uma lista de URLs de documentos (`List<String>`).
+. Criar um Serviço de Validação: Crie uma nova aplicação Spring Boot chamada documento-validator. Esta aplicação atuará como um processador.
+. Implementar a Function de Validação: Dentro do validador, implemente um `Function<Processo, Message<Processo>>`. Esta função deve:
+
+* Consumir mensagens Processo do destino `processos`.
+* Verificar a lista de URLs de documentos. Para este exercício, uma URL é considerada "inválida" se não contiver https://.
+* Com base no resultado da validação, a função deve rotear dinamicamente a mensagem Processo original para um de dois destinos diferentes: `processos-validados` ou `processos-com-pendencia`.
+
+[start=4]
+. Implementar Roteamento Dinâmico: Use o StreamBridge dentro da Function para enviar a mensagem para o destino correto. A própria função deve retornar null, pois está tratando a saída de forma imperativa.
+. Criar Consumidores Finais: Crie duas novas e simples aplicações consumidoras (`validados-consumer` e `pendencia-consumer`) que ouvem dos respectivos tópicos finais e registram as mensagens recebidas.
+
+== 5.2. Dicas e Orientações
+
+* *Dica 1 (Roteamento Dinâmico)*: Para rotear dinamicamente, pode-se usar streamBridge.send("nomeDoDestino", payload). Não será necessário configurar uma ligação de saída `-out-0` padrão para a função no YAML. Em vez disso, serão necessárias ligações de saída para o `StreamBridge` usar, como `validador-out-0` e validador-out-1, cada uma mapeada para um destino diferente.
+* *Dica 2 (Cabeçalhos da Mensagem)*: Ao usar o `StreamBridge`, os cabeçalhos originais da mensagem podem ser perdidos. Para preservá-los, o tipo de entrada da função deve ser `Message<Processo>`. Ao enviar a nova mensagem, um MessageBuilder pode ser usado para construir a nova mensagem com os cabeçalhos originais.
+* *Dica 3 (Configuração)*: Lembre-se de definir grupos de consumidores para todos os novos consumidores. O serviço de validação terá uma ligação de entrada, mas nenhuma ligação de saída funcional. O produtor não precisará de alterações de configuração se já estiver enviando para `processos`.

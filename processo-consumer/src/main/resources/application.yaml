@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: processo-consumer
+  cloud:
+    function:
+      # Se tiver mais de um bean de tratamento de mensagens,
+      # separar eles com ';'
+      definition: processoConsumer;processoFunction
+    stream:
+      # Nesta chave bindings, listar todos os canais e o vínculo
+      # com tópicos/exchange e consumer-group/filas
+      # in -> entrada, sink, consumer
+      # out -> saída, source, producer
+      bindings:
+        # nome do canal = <nomeBean>-<sentido>-<sequencial>
+        processoConsumer-in-0:
+          destination: processos
+          group: audit-service
+        processoFunction-in-0:
+          destination: processos
+          group: notificacao-service
+        processoFunction-out-0:
+          destination: notificacoes
+      # Configurações específicas para RabbitMQ
+      rabbit:
+        bindings:
+          processoFunction-in-0:
+            # Configuração do consumo de mensagens
+            consumer:
+              auto-bind-dlq: true
+              declare-exchange: true
+              exchange-type: topic
+          processoConsumer-in-0:
+            consumer:
+              auto-bind-dlq: true
+              declare-exchange: true
+              exchange-type: topic
+          processoFunction-out-0:
+            # Configuração do envio de mensagens
+            producer:
+              declare-exchange: true
+              exchange-type: topic
+
